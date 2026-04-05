@@ -6,12 +6,14 @@ import { ChatContext } from '../../context/ChatContext'
 import toast from 'react-hot-toast'
 
 const ChatContainer = () => {
- const { messages, selectedUser, sendMessage, getMessages, setSelectedUser } = useContext(ChatContext)
+  const { messages, selectedUser, sendMessage, getMessages, setSelectedUser } = useContext(ChatContext)
   const { authUser, onlineUsers } = useContext(AuthContext)
   const [input, setInput] = useState('')
   const scrollEnd = useRef();
-
+  
+  // Isse track hoga ki scroll kab karna hai
   const prevMessagesLength = useRef(messages.length);
+
   const handleSendMessage = async (e) => {
     if (e) e.preventDefault();
     if (input.trim() === "") return;
@@ -33,16 +35,15 @@ const ChatContainer = () => {
     reader.readAsDataURL(file);
   }
 
-  // Effect to fetch old messages
+  // Fetch messages when user is selected
   useEffect(() => {
     if (selectedUser?._id) {
       getMessages(selectedUser._id);
     }
-  }, [selectedUser?._id, getMessages]) // Added getMessages dependency
+  }, [selectedUser?._id, getMessages])
 
-  // Effect to scroll to bottom
- useEffect(() => {
-    // Check karein ki kya naya message aaya hai ya pehli baar chat khuli hai
+  // Improved Scroll Logic: Sirf naye message ya first load par scroll hoga
+  useEffect(() => {
     const isNewMessage = messages.length === prevMessagesLength.current + 1;
     const isFirstLoad = prevMessagesLength.current === 0 && messages.length > 0;
 
@@ -50,7 +51,7 @@ const ChatContainer = () => {
       scrollEnd.current.scrollIntoView({ behavior: 'smooth' });
     }
 
-    // Agli baar ke liye current length save karein
+    // Update the ref for next render
     prevMessagesLength.current = messages.length;
   }, [messages]);
 
@@ -65,17 +66,21 @@ const ChatContainer = () => {
 
   return (
     <div className='h-full flex flex-col overflow-hidden relative backdrop-blur-lg'>
-      {/* Header */}
+      {/* Header with Back Button */}
       <div className='flex items-center gap-3 py-3 mx-4 border-b border-stone-500'>
+        {/* Back Button: Visible only on mobile (md:hidden) */}
         <button 
           onClick={() => setSelectedUser(null)} 
-          className='md:hidden p-2 hover:bg-white/10 rounded-full transition-colors'
+          className='md:hidden p-2 hover:bg-white/10 rounded-full transition-colors group'
+          title="Back to Sidebar"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="m15 18-6-6 6-6"/>
           </svg>
         </button>
+
         <img src={selectedUser.profilePic || assets.avatar_icon} alt="" className="w-8 h-8 rounded-full object-cover" />
+        
         <div className='flex-1'>
           <p className='text-lg text-white flex items-center gap-2'>
             {selectedUser.fullName}
@@ -83,7 +88,7 @@ const ChatContainer = () => {
               <span className="w-2 h-2 rounded-full bg-green-500"></span>
             )}
           </p>
-          <p className='text-xs text-gray-400'>
+          <p className='text-xs text-gray-400 font-medium'>
             {onlineUsers.includes(selectedUser._id) ? "Online" : "Offline"}
           </p>
         </div>
@@ -119,19 +124,19 @@ const ChatContainer = () => {
 
       {/* Input Area */}
       <div className='p-4 bg-transparent'>
-        <form onSubmit={handleSendMessage} className='flex items-center gap-2 bg-zinc-900/50 p-2 rounded-full border border-gray-700'>
+        <form onSubmit={handleSendMessage} className='flex items-center gap-2 bg-zinc-900/50 p-2 rounded-full border border-gray-700 focus-within:border-violet-500 transition-all'>
           <input
             onChange={(e) => setInput(e.target.value)}
             value={input}
             type="text"
             placeholder="Type a message..."
-            className='flex-1 bg-transparent border-none outline-none text-white px-3 text-sm'
+            className='flex-1 bg-transparent border-none outline-none text-white px-3 text-sm placeholder:text-gray-500'
           />
           <input onChange={handleSendImage} type="file" id='image-upload' accept='image/*' hidden />
-          <label htmlFor="image-upload" className='cursor-pointer p-1 hover:bg-gray-700 rounded-full'>
-            <img src={assets.gallery_icon} alt="" className='w-5' />
+          <label htmlFor="image-upload" className='cursor-pointer p-1.5 hover:bg-gray-700/50 rounded-full transition-colors'>
+            <img src={assets.gallery_icon} alt="" className='w-5 opacity-80' />
           </label>
-          <button type="submit" className='p-2 bg-violet-600 rounded-full hover:bg-violet-700 transition-all'>
+          <button type="submit" className='p-2 bg-violet-600 rounded-full hover:bg-violet-700 transition-all shadow-lg active:scale-95'>
             <img src={assets.send_button} alt="" className='w-4' />
           </button>
         </form>
