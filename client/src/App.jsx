@@ -13,7 +13,7 @@ function App() {
   return (
     <>
       {/* 5. Tailwind class fix: agar bgImage.svg assets mein hai toh path check karein */}
-      <div className="bg-[url('./assets/bgImage.svg')] bg-contain min-h-screen">
+      <div className="bg-[url('/bgImage.svg')] bg-contain min-h-screen">
         <Toaster />
         <Routes>
           {/* Protected Routes Logic */}
