@@ -6,11 +6,12 @@ import { ChatContext } from '../../context/ChatContext'
 import toast from 'react-hot-toast'
 
 const ChatContainer = () => {
-  const { messages, selectedUser, sendMessage, getMessages } = useContext(ChatContext)
+ const { messages, selectedUser, sendMessage, getMessages, setSelectedUser } = useContext(ChatContext)
   const { authUser, onlineUsers } = useContext(AuthContext)
   const [input, setInput] = useState('')
   const scrollEnd = useRef();
- 
+
+  const prevMessagesLength = useRef(messages.length);
   const handleSendMessage = async (e) => {
     if (e) e.preventDefault();
     if (input.trim() === "") return;
@@ -40,11 +41,18 @@ const ChatContainer = () => {
   }, [selectedUser?._id, getMessages]) // Added getMessages dependency
 
   // Effect to scroll to bottom
-  useEffect(() => {
-    if (scrollEnd.current && messages.length > 0) {
-      scrollEnd.current.scrollIntoView({ behavior: 'smooth' })
+ useEffect(() => {
+    // Check karein ki kya naya message aaya hai ya pehli baar chat khuli hai
+    const isNewMessage = messages.length === prevMessagesLength.current + 1;
+    const isFirstLoad = prevMessagesLength.current === 0 && messages.length > 0;
+
+    if (scrollEnd.current && (isNewMessage || isFirstLoad)) {
+      scrollEnd.current.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [messages])
+
+    // Agli baar ke liye current length save karein
+    prevMessagesLength.current = messages.length;
+  }, [messages]);
 
   if (!selectedUser) {
     return (
@@ -59,6 +67,14 @@ const ChatContainer = () => {
     <div className='h-full flex flex-col overflow-hidden relative backdrop-blur-lg'>
       {/* Header */}
       <div className='flex items-center gap-3 py-3 mx-4 border-b border-stone-500'>
+        <button 
+          onClick={() => setSelectedUser(null)} 
+          className='md:hidden p-2 hover:bg-white/10 rounded-full transition-colors'
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="m15 18-6-6 6-6"/>
+          </svg>
+        </button>
         <img src={selectedUser.profilePic || assets.avatar_icon} alt="" className="w-8 h-8 rounded-full object-cover" />
         <div className='flex-1'>
           <p className='text-lg text-white flex items-center gap-2'>
