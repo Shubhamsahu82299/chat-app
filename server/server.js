@@ -22,7 +22,9 @@ app.use(express.json({ limit: "4mb" }));
 app.use("/api/status", (req, res) => res.send("Server is live"));
 app.use("/api/auth", userRouter);
 app.use("/api/messages", messageRouter);
-
+app.get("/", (req, res) => {
+    res.send("API is running successfully!");
+});
 // Database connection (Top-level await ya direct call)
 connectDB();
 
